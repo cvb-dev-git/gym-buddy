@@ -22,12 +22,12 @@
                         iosCard: '#1C1C1E',
                         iosCardHover: '#2C2C2E',
                         iosActive: '#0A84FF',   // iOS Electric Blue
-                        iosSecondary: '#30D158',// iOS Green
+                        iosSecondary: '#30D158',// iOS Neon Green
                         iosAlert: '#FF3B30',    // Red
                         iosNeutral: '#2C2C2E',
                         iosText: '#FFFFFF',
                         iosSubText: '#8E8E93',
-                        iosWarning: '#FFD60A'
+                        iosWarning: '#FFD60A'   // iOS Yellow
                     }
                 }
             }
@@ -194,7 +194,7 @@
                             <!-- SET ${s} -->
                             <div class="bg-iosNeutral/40 px-2 py-1.5 rounded-xl flex items-center justify-between border border-iosNeutral/60 focus-within:border-iosActive">
                                 <label class="text-[10px] font-bold text-iosSubText shrink-0">S${s}</label>
-                                <div class="flex items-center gap-0.5 w-full justify-end">
+                                <div class="flex items-center gap-1.5 w-full justify-end">
                                     <input type="number" 
                                         inputmode="decimal"
                                         pattern="[0-9]*"
@@ -204,8 +204,8 @@
                                         value="${val}"
                                         onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault();"
                                         oninput="saveWeight(${idx}, ${s}, this.value)"
-                                        class="w-full bg-transparent text-right font-extrabold text-iosText text-sm sm:text-base outline-none focus:text-iosActive">
-                                    <span class="text-[9px] font-semibold text-iosSubText">kg</span>
+                                        class="w-full bg-transparent text-right font-extrabold text-iosWarning placeholder:text-iosSubText text-sm sm:text-base outline-none">
+                                    <span class="text-[9px] font-semibold text-iosSubText shrink-0">kg</span>
                                 </div>
                             </div>
                         `;
@@ -224,7 +224,7 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-center gap-2">
                         <h4 class="text-sm sm:text-base font-bold text-iosText leading-snug flex-1">${ex.name}</h4>
-                        <span class="text-[11px] font-semibold text-iosWarning bg-iosNeutral/80 px-2.5 py-0.5 rounded-full shrink-0 text-right">
+                        <span class="text-[11px] font-semibold text-iosSecondary bg-iosNeutral/80 px-2.5 py-0.5 rounded-full shrink-0 text-right">
                             ${ex.category}
                         </span>
                     </div>

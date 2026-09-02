@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Gym Buddy">
-    <title>Gym Buddy</title>
+    <title>Gym Buddy - Workout Tracker</title>
 
-    <!-- Placeholder touch icons dynamically converted to PNG via Canvas in JS -->
     <link id="appleTouchIcon" rel="apple-touch-icon" href="">
     <link id="appFavicon" rel="icon" type="image/png" href="">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -23,11 +23,12 @@
                         iosCardHover: '#2C2C2E',
                         iosActive: '#0A84FF',   // iOS Electric Blue
                         iosSecondary: '#30D158',// iOS Neon Green
-                        iosAlert: '#FF3B30',    // Red
+                        iosAlert: '#FF3B30',    // iOS Red
                         iosNeutral: '#2C2C2E',
                         iosText: '#FFFFFF',
                         iosSubText: '#8E8E93',
-                        iosWarning: '#FFD60A'   // iOS Yellow
+                        iosWarning: '#FFD60A',  // iOS Yellow
+                        iosPurple: '#BF59CF'
                     }
                 }
             }
@@ -40,12 +41,12 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
-            padding-top: max(env(safe-area-inset-top), 1rem);
-            padding-bottom: max(env(safe-area-inset-bottom), 1.5rem);
+            padding-top: max(env(safe-area-inset-top), 0.75rem);
+            padding-bottom: max(env(safe-area-inset-bottom), 2rem);
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* Hide spin buttons for input numbers on Safari/iOS */
+        /* Hide spin buttons for input numbers on Safari/Chrome/Firefox */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -55,21 +56,38 @@
             -moz-appearance: textfield;
         }
 
-        /* Custom scrollbars for high contrast feel */
+        /* Smooth iOS glass blur effects */
+        .glass-panel {
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Scrollbar styles */
         ::-webkit-scrollbar {
             width: 4px;
+            height: 4px;
         }
         ::-webkit-scrollbar-thumb {
             background: #2C2C2E;
             border-radius: 4px;
         }
+
+        /* Custom animation for modal & toast */
+        @keyframes popIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
-<body class="p-3 sm:p-4 md:p-6 min-h-screen">
+<body class="p-3 sm:p-5 min-h-screen text-iosText flex flex-col justify-between">
 
-    <div class="max-w-md mx-auto space-y-4">
+    <div class="max-w-md mx-auto w-full space-y-4 pb-20">
 
-        <!-- HEADER -->
+        <!-- HEADER & TOOLBAR -->
         <header class="flex justify-between items-center pb-2 border-b border-iosNeutral">
             <div>
                 <h1 class="text-[26px] sm:text-[32px] font-extrabold tracking-tight text-iosText flex items-center gap-2">
@@ -79,25 +97,73 @@
                     Gym Buddy
                 </h1>
             </div>
+
+            <!-- Rest Timer Badge -->
+            <button onclick="toggleTimerModal()" id="timerBadge" class="bg-iosNeutral/80 hover:bg-iosNeutral text-iosWarning text-xs font-bold px-3 py-1.5 rounded-xl border border-iosWarning/30 flex items-center gap-1.5 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span id="timerText">Timer</span>
+            </button>
         </header>
 
         <!-- ROUTINE SWITCHER TAB BAR -->
-        <div class="bg-iosNeutral/70 p-1 rounded-2xl flex text-base font-semibold">
+        <nav class="bg-iosNeutral/70 p-1 rounded-2xl flex text-base font-semibold">
             <button id="tabUpper" onclick="switchRoutine('upper')" 
-                class="flex-1 py-2 rounded-xl transition-all duration-200 text-center bg-iosActive text-white shadow-md">
+                class="flex-1 py-2 rounded-xl transition-all duration-200 text-center bg-iosActive text-white shadow-md font-semibold">
                 Upper Body
             </button>
             <button id="tabLower" onclick="switchRoutine('lower')" 
-                class="flex-1 py-2 rounded-xl transition-all duration-200 text-center text-iosSubText hover:text-white">
+                class="flex-1 py-2 rounded-xl transition-all duration-200 text-center text-iosSubText hover:text-white font-semibold">
                 Lower Body
             </button>
-        </div>
+        </nav>
 
         <!-- EXERCISES CONTAINER -->
         <div id="exerciseList" class="space-y-2.5">
             <!-- Dynamic Exercise Cards injected via JavaScript -->
         </div>
 
+    </div>
+
+    <!-- REST TIMER MODAL OVERLAY -->
+    <div id="timerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 hidden">
+        <div class="bg-iosCard border border-iosNeutral rounded-3xl w-full max-w-sm p-6 space-y-6 animate-pop">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-iosWarning" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Rest Timer
+                </h3>
+                <button onclick="toggleTimerModal()" class="text-iosSubText hover:text-white p-1">✕</button>
+            </div>
+
+            <!-- Big Timer Display -->
+            <div class="text-center">
+                <div id="bigTimerDisplay" class="text-5xl font-extrabold text-iosWarning tracking-tight font-mono">00:00</div>
+                <p class="text-xs text-iosSubText mt-2">Take a breath & hydrate</p>
+            </div>
+
+            <!-- Timer Preset Buttons -->
+            <div class="grid grid-cols-5 gap-1.5">
+                <button onclick="startTimer(30)" class="bg-iosNeutral hover:bg-iosNeutral/80 py-2 rounded-xl text-xs font-bold text-white transition">30s</button>
+                <button onclick="startTimer(60)" class="bg-iosNeutral hover:bg-iosNeutral/80 py-2 rounded-xl text-xs font-bold text-white transition">60s</button>
+                <button onclick="startTimer(90)" class="bg-iosNeutral hover:bg-iosNeutral/80 py-2 rounded-xl text-xs font-bold text-white transition">90s</button>
+                <button onclick="startTimer(120)" class="bg-iosNeutral hover:bg-iosNeutral/80 py-2 rounded-xl text-xs font-bold text-white transition">2 min</button>
+                <button onclick="startTimer(150)" class="bg-iosNeutral hover:bg-iosNeutral/80 py-2 rounded-xl text-xs font-bold text-white transition">2.5 min</button>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="stopTimer()" class="flex-1 bg-iosAlert/20 text-iosAlert border border-iosAlert/30 py-2.5 rounded-xl font-semibold text-sm">Stop Timer</button>
+                <button onclick="toggleTimerModal()" class="flex-1 bg-iosNeutral text-white py-2.5 rounded-xl font-semibold text-sm">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-iosNeutral/90 border border-iosActive/40 text-iosText px-4 py-2 rounded-full text-xs font-bold shadow-xl opacity-0 transition-opacity duration-300 pointer-events-none z-50 flex items-center gap-2">
+        <span id="toastMsg">Notification</span>
     </div>
 
     <script>
@@ -133,42 +199,39 @@
                 { name: "Calf Raises", category: "Calves" },
                 { name: "Dumbbell Swing", category: "Posterior Chain" },
                 { name: "Shrug", category: "Traps" },
-                { name: "Deadhang / Farmer's Carry", category: "Grip & Core" }
+                { name: "Deadhang / Farmer's Carry", category: "Grip & Core", noInputs: true }
             ]
         };
 
         let currentTab = 'upper';
+        let timerInterval = null;
+        let timerRemaining = 0;
 
         function generatePNGAppIcon() {
-            const size = 180; // Standard iOS Apple Touch Icon dimensions
+            const size = 180;
             const canvas = document.createElement('canvas');
             canvas.width = size;
             canvas.height = size;
             const ctx = canvas.getContext('2d');
 
-            // Rich Dark Background
             ctx.fillStyle = '#101012';
             ctx.fillRect(0, 0, size, size);
 
-            // Subtle electric blue radial glow in background
             const glow = ctx.createRadialGradient(90, 90, 10, 90, 90, 85);
             glow.addColorStop(0, 'rgba(10, 132, 255, 0.35)');
             glow.addColorStop(1, 'rgba(10, 132, 255, 0)');
             ctx.fillStyle = glow;
             ctx.fillRect(0, 0, size, size);
 
-            // Draw Barbell / Dumbbell Icon Artwork
             ctx.strokeStyle = '#0A84FF';
             ctx.lineWidth = 14;
             ctx.lineCap = 'round';
 
-            // Main Barbell Bar
             ctx.beginPath();
             ctx.moveTo(42, 90);
             ctx.lineTo(138, 90);
             ctx.stroke();
 
-            // Inner Heavy Weight Plates
             ctx.beginPath();
             ctx.moveTo(56, 60);
             ctx.lineTo(56, 120);
@@ -176,7 +239,6 @@
             ctx.lineTo(124, 120);
             ctx.stroke();
 
-            // Outer Weight Plates
             ctx.lineWidth = 12;
             ctx.beginPath();
             ctx.moveTo(42, 68);
@@ -185,7 +247,6 @@
             ctx.lineTo(138, 112);
             ctx.stroke();
 
-            // Accent Green Grips / Tips
             ctx.lineWidth = 8;
             ctx.strokeStyle = '#30D158';
             ctx.beginPath();
@@ -195,13 +256,35 @@
             ctx.lineTo(152, 102);
             ctx.stroke();
 
-            // Export PNG Data URL & Update dynamic icon tags
             const pngDataUrl = canvas.toDataURL('image/png');
             document.getElementById('appleTouchIcon').href = pngDataUrl;
             document.getElementById('appFavicon').href = pngDataUrl;
         }
 
-        // Switch Tab UI
+        // Decimal input handler to support values like 5.3, 12.5, etc.
+        function handleDecimalInput(inputElement, exerciseIndex, setNumber) {
+            let rawVal = inputElement.value;
+
+            // Replace comma with dot if user typed comma on mobile keyboard
+            if (rawVal.includes(',')) {
+                rawVal = rawVal.replace(',', '.');
+                inputElement.value = rawVal;
+            }
+
+            const key = `${currentTab}_ex_${exerciseIndex}_set_${setNumber}`;
+
+            if (rawVal !== "" && !isNaN(parseFloat(rawVal))) {
+                localStorage.setItem(key, rawVal);
+            } else if (rawVal === "") {
+                localStorage.removeItem(key);
+            }
+        }
+
+        function getWeight(exerciseIndex, setNumber) {
+            const key = `${currentTab}_ex_${exerciseIndex}_set_${setNumber}`;
+            return localStorage.getItem(key) || '';
+        }
+
         function switchRoutine(type) {
             currentTab = type;
             const tabUpper = document.getElementById('tabUpper');
@@ -218,23 +301,6 @@
             renderExercises();
         }
 
-        // Save Input to In-Memory/Data attributes
-        function saveWeight(exerciseIndex, setNumber, value) {
-            const key = `${currentTab}_ex_${exerciseIndex}_set_${setNumber}`;
-            if (value !== "") {
-                localStorage.setItem(key, value);
-            } else {
-                localStorage.removeItem(key);
-            }
-        }
-
-        // Get Saved Weight value
-        function getWeight(exerciseIndex, setNumber) {
-            const key = `${currentTab}_ex_${exerciseIndex}_set_${setNumber}`;
-            return localStorage.getItem(key) || '';
-        }
-
-        // Render List of Cards
         function renderExercises() {
             const container = document.getElementById('exerciseList');
             container.innerHTML = '';
@@ -257,14 +323,13 @@
                             <div class="bg-iosNeutral/40 px-2 py-1.5 rounded-xl flex items-center justify-between border border-iosNeutral/60 focus-within:border-iosActive">
                                 <label class="text-[12px] font-bold text-iosSubText shrink-0">S${s}</label>
                                 <div class="flex items-center gap-1.5 w-full justify-end">
-                                    <input type="number" 
+                                    <input type="text" 
                                         inputmode="decimal"
-                                        step="any" 
-                                        min="0"
+                                        pattern="[0-9]*[.,]?[0-9]*"
                                         placeholder="0" 
                                         value="${val}"
-                                        onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault();"
-                                        oninput="saveWeight(${idx}, ${s}, this.value)"
+                                        oninput="handleDecimalInput(this, ${idx}, ${s})"
+                                        onfocus="this.select()"
                                         class="w-full bg-transparent text-right font-extrabold text-iosWarning placeholder:text-iosSubText text-base sm:text-lg outline-none">
                                     <span class="text-[11px] font-semibold text-iosSubText shrink-0">kg</span>
                                 </div>
@@ -296,7 +361,63 @@
             });
         }
 
-        // App Init
+        function startTimer(seconds) {
+            clearInterval(timerInterval);
+            timerRemaining = seconds;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timerRemaining--;
+                updateTimerDisplay();
+                if (timerRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    showToast("⏰ Rest Timer Finished!");
+                }
+            }, 1000);
+
+            showToast(`Timer set for ${seconds}s`);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerRemaining = 0;
+            updateTimerDisplay();
+            showToast("Timer stopped");
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerRemaining / 60);
+            const secs = timerRemaining % 60;
+            const str = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            const badge = document.getElementById('timerText');
+            const bigDisplay = document.getElementById('bigTimerDisplay');
+
+            if (badge) badge.innerText = timerRemaining > 0 ? str : "Timer";
+            if (bigDisplay) bigDisplay.innerText = str;
+        }
+
+        function toggleTimerModal() {
+            const modal = document.getElementById('timerModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            if (!toast || !toastMsg) return;
+            
+            toastMsg.innerText = msg;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 2000);
+        }
+
+        // App Initialization
         window.onload = function() {
             generatePNGAppIcon();
             renderExercises();

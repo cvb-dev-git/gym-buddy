@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gym Buddy">
+    <title>Gym Buddy</title>
+
+    <!-- iOS Home Screen Icon & Favicon -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22%23000000%22/><path d=%22M120 256h272M160 180v152M352 180v152M120 200v112M392 200v112%22 stroke=%22%230A84FF%22 stroke-width=%2236%22 stroke-linecap=%22round%22/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22%23000000%22/><path d=%22M120 256h272M160 180v152M352 180v152M120 200v112M392 200v112%22 stroke=%22%230A84FF%22 stroke-width=%2236%22 stroke-linecap=%22round%22/></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        iosBg: '#000000',
+                        iosCard: '#1C1C1E',
+                        iosCardHover: '#2C2C2E',
+                        iosActive: '#0A84FF',   // iOS Electric Blue
+                        iosSecondary: '#30D158',// iOS Green
+                        iosAlert: '#FF3B30',    // Red
+                        iosNeutral: '#2C2C2E',
+                        iosText: '#FFFFFF',
+                        iosSubText: '#8E8E93',
+                        iosWarning: '#FFD60A'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #FFFFFF;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            padding-top: max(env(safe-area-inset-top), 1rem);
+            padding-bottom: max(env(safe-area-inset-bottom), 1.5rem);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Hide spin buttons for input numbers on Safari/iOS */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Custom scrollbars for high contrast feel */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2C2C2E;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-4 md:p-6 min-h-screen">
+
+    <div class="max-w-md mx-auto space-y-4">
+
+        <!-- HEADER -->
+        <header class="flex justify-between items-center pb-2 border-b border-iosNeutral">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-iosText flex items-center gap-2">
+                    <svg class="w-7 h-7 sm:w-8 sm:h-8 text-iosActive" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/>
+                    </svg>
+                    Gym Buddy
+                </h1>
+            </div>
+        </header>
+
+        <!-- ROUTINE SWITCHER TAB BAR -->
+        <div class="bg-iosNeutral/70 p-1 rounded-2xl flex text-sm font-semibold">
+            <button id="tabUpper" onclick="switchRoutine('upper')" 
+                class="flex-1 py-2 rounded-xl transition-all duration-200 text-center bg-iosActive text-white shadow-md">
+                Upper Body
+            </button>
+            <button id="tabLower" onclick="switchRoutine('lower')" 
+                class="flex-1 py-2 rounded-xl transition-all duration-200 text-center text-iosSubText hover:text-white">
+                Lower Body
+            </button>
+        </div>
+
+        <!-- EXERCISES CONTAINER -->
+        <div id="exerciseList" class="space-y-2.5">
+            <!-- Dynamic Exercise Cards injected via JavaScript -->
+        </div>
+
+    </div>
+
+    <script>
+        // Exercise Data Configuration
+        const workouts = {
+            upper: [
+                { name: "Weighted Pull-ups", category: "Back / Lats" },
+                { name: "Inclined Bench Press", category: "Chest (Upper)" },
+                { name: "Chest-Supported Back Row", category: "Back (Upper)" },
+                { name: "Lats Pull Down", category: "Lats (Upper)" },
+                { name: "Back Cable Row", category: "Back (Mid)" },
+                { name: "Dumbbell Lat Pullover", category: "Lats" },
+                { name: "Chest Fly", category: "Chest (Mid)" },
+                { name: "Biceps Curls (behind shoulders)", category: "Biceps" },
+                { name: "Cross Cable Extension", category: "Triceps (Lat/Med)" },
+                { name: "Preacher Curls", category: "Biceps" },
+                { name: "Overhead Extension", category: "Triceps (Long Head)" },
+                { name: "Lateral Cable Raises", category: "Shoulders (Side)" },
+                { name: "Rear Delt Dumbbell Raises", category: "Shoulders (Rear)" },
+                { name: "Cable Crunch", category: "Abs (Upper)" },
+                { name: "Cable Rotator Cuff (kneeling)", category: "Shoulders", noInputs: true },
+                { name: "Reverse Crunch", category: "Abs (Lower)", noInputs: true },
+                { name: "Rotator Cuff: Full Can", category: "Shoulders", noInputs: true },
+                { name: "Ab Wheel Rollouts", category: "Abs", noInputs: true },
+                { name: "Woodchopper", category: "Abs (Obliques)" }
+            ],
+            lower: [
+                { name: "Barbell Squat", category: "Quads", sets: 3 },
+                { name: "Romanian Deadlift", category: "Hamstrings & Glutes", sets: 3 },
+                { name: "Bulgarian Split Squat", category: "Quads / Glutes", sets: 3 },
+                { name: "Hip Thrust", category: "Glutes", sets: 3 },
+                { name: "Quad Leg Extension", category: "Quads" },
+                { name: "Calf Raises", category: "Calves" },
+                { name: "Dumbbell Swing", category: "Posterior Chain" },
+                { name: "Shrug", category: "Traps" },
+                { name: "Deadhang / Farmer's Carry", category: "Grip & Core" }
+            ]
+        };
+
+        let currentTab = 'upper';
+
+        // Switch Tab UI
+        function switchRoutine(type) {
+            currentTab = type;
+            const tabUpper = document.getElementById('tabUpper');
+            const tabLower = document.getElementById('tabLower');
+
+            if (type === 'upper') {
+                tabUpper.className = "flex-1 py-2 rounded-xl transition-all duration-200 text-center bg-iosActive text-white shadow-md font-semibold";
+                tabLower.className = "flex-1 py-2 rounded-xl transition-all duration-200 text-center text-iosSubText hover:text-white font-semibold";
+            } else {
+                tabLower.className = "flex-1 py-2 rounded-xl transition-all duration-200 text-center bg-iosActive text-white shadow-md font-semibold";
+                tabUpper.className = "flex-1 py-2 rounded-xl transition-all duration-200 text-center text-iosSubText hover:text-white font-semibold";
+            }
+
+            renderExercises();
+        }
+
+        // Save Input to In-Memory/Data attributes
+        function saveWeight(exerciseIndex, setNumber, value) {
+            const key = `${currentTab}_ex_${exerciseIndex}_set_${setNumber}`;
+            if (value !== "") {
+                localStorage.setItem(key, value);
+            } else {
+                localStorage.removeItem(key);
+            }
+        }
+
+        // Get Saved Weight value
+        function getWeight(exerciseIndex, setNumber) {
+            const key = `${currentTab}_ex_${exerciseIndex}_set_${setNumber}`;
+            return localStorage.getItem(key) || '';
+        }
+
+        // Render List of Cards
+        function renderExercises() {
+            const container = document.getElementById('exerciseList');
+            container.innerHTML = '';
+
+            const list = workouts[currentTab];
+
+            list.forEach((ex, idx) => {
+                const totalSets = ex.sets || 2;
+                const card = document.createElement('div');
+                card.className = "bg-iosCard px-3.5 py-3 rounded-2xl space-y-2 border border-iosNeutral/40 hover:border-iosActive/30 transition-all shadow-md";
+
+                let inputGridHTML = '';
+                
+                if (!ex.noInputs) {
+                    let setBoxes = '';
+                    for (let s = 1; s <= totalSets; s++) {
+                        const val = getWeight(idx, s);
+                        setBoxes += `
+                            <!-- SET ${s} -->
+                            <div class="bg-iosNeutral/40 px-2 py-1.5 rounded-xl flex items-center justify-between border border-iosNeutral/60 focus-within:border-iosActive">
+                                <label class="text-[10px] font-bold text-iosSubText shrink-0">S${s}</label>
+                                <div class="flex items-center gap-0.5 w-full justify-end">
+                                    <input type="number" 
+                                        step="0.5" 
+                                        min="0"
+                                        placeholder="0" 
+                                        value="${val}"
+                                        oninput="saveWeight(${idx}, ${s}, this.value)"
+                                        class="w-full bg-transparent text-right font-extrabold text-iosText text-sm sm:text-base outline-none focus:text-iosActive">
+                                    <span class="text-[9px] font-semibold text-iosSubText">kg</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    const gridColsClass = totalSets === 3 ? 'grid-cols-3 gap-1.5' : 'grid-cols-2 gap-2.5';
+
+                    inputGridHTML = `
+                        <!-- Input Grid -->
+                        <div class="grid ${gridColsClass}">
+                            ${setBoxes}
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center gap-2">
+                        <h4 class="text-sm sm:text-base font-bold text-iosText leading-snug flex-1">${ex.name}</h4>
+                        <span class="text-[11px] font-semibold text-iosWarning bg-iosNeutral/80 px-2.5 py-0.5 rounded-full shrink-0 text-right">
+                            ${ex.category}
+                        </span>
+                    </div>
+                    ${inputGridHTML}
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // App Init
+        window.onload = function() {
+            renderExercises();
+        };
+    </script>
+</body>
+</html>

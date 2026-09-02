@@ -8,9 +8,9 @@
     <meta name="apple-mobile-web-app-title" content="Gym Buddy">
     <title>Gym Buddy</title>
 
-    <!-- iOS Home Screen Icon & Favicon -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22%23000000%22/><path d=%22M120 256h272M160 180v152M352 180v152M120 200v112M392 200v112%22 stroke=%22%230A84FF%22 stroke-width=%2236%22 stroke-linecap=%22round%22/></svg>">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22%23000000%22/><path d=%22M120 256h272M160 180v152M352 180v152M120 200v112M392 200v112%22 stroke=%22%230A84FF%22 stroke-width=%2236%22 stroke-linecap=%22round%22/></svg>">
+    <!-- Placeholder touch icons dynamically converted to PNG via Canvas in JS -->
+    <link id="appleTouchIcon" rel="apple-touch-icon" href="">
+    <link id="appFavicon" rel="icon" type="image/png" href="">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -139,6 +139,68 @@
 
         let currentTab = 'upper';
 
+        function generatePNGAppIcon() {
+            const size = 180; // Standard iOS Apple Touch Icon dimensions
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Rich Dark Background
+            ctx.fillStyle = '#101012';
+            ctx.fillRect(0, 0, size, size);
+
+            // Subtle electric blue radial glow in background
+            const glow = ctx.createRadialGradient(90, 90, 10, 90, 90, 85);
+            glow.addColorStop(0, 'rgba(10, 132, 255, 0.35)');
+            glow.addColorStop(1, 'rgba(10, 132, 255, 0)');
+            ctx.fillStyle = glow;
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw Barbell / Dumbbell Icon Artwork
+            ctx.strokeStyle = '#0A84FF';
+            ctx.lineWidth = 14;
+            ctx.lineCap = 'round';
+
+            // Main Barbell Bar
+            ctx.beginPath();
+            ctx.moveTo(42, 90);
+            ctx.lineTo(138, 90);
+            ctx.stroke();
+
+            // Inner Heavy Weight Plates
+            ctx.beginPath();
+            ctx.moveTo(56, 60);
+            ctx.lineTo(56, 120);
+            ctx.moveTo(124, 60);
+            ctx.lineTo(124, 120);
+            ctx.stroke();
+
+            // Outer Weight Plates
+            ctx.lineWidth = 12;
+            ctx.beginPath();
+            ctx.moveTo(42, 68);
+            ctx.lineTo(42, 112);
+            ctx.moveTo(138, 68);
+            ctx.lineTo(138, 112);
+            ctx.stroke();
+
+            // Accent Green Grips / Tips
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#30D158';
+            ctx.beginPath();
+            ctx.moveTo(28, 78);
+            ctx.lineTo(28, 102);
+            ctx.moveTo(152, 78);
+            ctx.lineTo(152, 102);
+            ctx.stroke();
+
+            // Export PNG Data URL & Update dynamic icon tags
+            const pngDataUrl = canvas.toDataURL('image/png');
+            document.getElementById('appleTouchIcon').href = pngDataUrl;
+            document.getElementById('appFavicon').href = pngDataUrl;
+        }
+
         // Switch Tab UI
         function switchRoutine(type) {
             currentTab = type;
@@ -197,8 +259,7 @@
                                 <div class="flex items-center gap-1.5 w-full justify-end">
                                     <input type="number" 
                                         inputmode="decimal"
-                                        pattern="[0-9]*"
-                                        step="0.5" 
+                                        step="any" 
                                         min="0"
                                         placeholder="0" 
                                         value="${val}"
@@ -237,6 +298,7 @@
 
         // App Init
         window.onload = function() {
+            generatePNGAppIcon();
             renderExercises();
         };
     </script>

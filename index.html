@@ -205,6 +205,7 @@
 
         let currentTab = 'upper';
         let timerInterval = null;
+        let timerEndTime = null;
         let timerRemaining = 0;
 
         function generatePNGAppIcon() {
@@ -392,25 +393,38 @@
             });
         }
 
+        function tickTimer() {
+            if (!timerEndTime) return;
+            const now = Date.now();
+            const diffMs = timerEndTime - now;
+
+            if (diffMs <= 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerEndTime = null;
+                timerRemaining = 0;
+                updateTimerDisplay();
+                showToast("⏰ Rest Timer Finished!");
+            } else {
+                timerRemaining = Math.ceil(diffMs / 1000);
+                updateTimerDisplay();
+            }
+        }
+
         function startTimer(seconds) {
             clearInterval(timerInterval);
+            timerEndTime = Date.now() + (seconds * 1000);
             timerRemaining = seconds;
             updateTimerDisplay();
 
-            timerInterval = setInterval(() => {
-                timerRemaining--;
-                updateTimerDisplay();
-                if (timerRemaining <= 0) {
-                    clearInterval(timerInterval);
-                    showToast("⏰ Rest Timer Finished!");
-                }
-            }, 1000);
-
+            timerInterval = setInterval(tickTimer, 200);
             showToast(`Timer set for ${seconds}s`);
         }
 
         function stopTimer() {
             clearInterval(timerInterval);
+            timerInterval = null;
+            timerEndTime = null;
             timerRemaining = 0;
             updateTimerDisplay();
             showToast("Timer stopped");
@@ -447,6 +461,13 @@
                 toast.classList.add('opacity-0');
             }, 2000);
         }
+
+        // Handle page unlock / tab wake up to immediately recalculate remaining time
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && timerEndTime) {
+                tickTimer();
+            }
+        });
 
         // App Initialization
         window.onload = function() {

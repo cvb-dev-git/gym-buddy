@@ -325,9 +325,9 @@
             groups.forEach(group => {
                 let groupContainer;
                 if (group.pair) {
-                    // Transparent tile with electric blue tint encompassing paired exercises
+                    // Transparent tile with thicker neon green border encompassing paired exercises
                     groupContainer = document.createElement('div');
-                    groupContainer.className = "bg-iosActive/10 border border-iosActive/25 p-2 rounded-3xl space-y-2";
+                    groupContainer.className = "bg-iosSecondary/10 border-2 border-iosSecondary/40 p-2 rounded-3xl space-y-2";
                 } else {
                     groupContainer = document.createElement('div');
                     groupContainer.className = "space-y-2.5";

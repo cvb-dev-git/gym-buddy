@@ -32,7 +32,7 @@
                     }
                 }
             }
-        }
+        };
     </script>
     <style>
         body {
@@ -170,36 +170,36 @@
         // Exercise Data Configuration
         const workouts = {
             upper: [
-                { name: "Weighted Pull-ups", category: "Back / Lats" },
-                { name: "Inclined Bench Press", category: "Chest (Upper)" },
-                { name: "Chest-Supported Back Row", category: "Back (Upper)" },
-                { name: "Lats Pull Down", category: "Lats (Upper)" },
-                { name: "Back Cable Row", category: "Back (Mid)" },
-                { name: "Dumbbell Lat Pullover", category: "Lats" },
-                { name: "Chest Fly", category: "Chest (Mid)" },
-                { name: "Biceps Curls (behind shoulders)", category: "Biceps" },
-                { name: "Cross Cable Extension", category: "Triceps (Lat/Med)" },
-                { name: "Lateral Cable Raises", category: "Shoulders (Side)" },
-                { name: "Preacher Curls", category: "Biceps" },
-                { name: "Overhead Extension", category: "Triceps (Long Head)" },
-                { name: "Rear Delt Dumbbell Raises", category: "Shoulders (Rear)" },
-                { name: "Cable Crunch", category: "Abs (Upper)" },
-                { name: "Cable Rotator Cuff (kneeling)", category: "Shoulders", noInputs: true },
-                { name: "Reverse Crunch", category: "Abs (Lower)", noInputs: true },
-                { name: "Rotator Cuff: Full Can", category: "Shoulders", noInputs: true },
-                { name: "Ab Wheel Rollouts", category: "Abs", noInputs: true },
-                { name: "Woodchopper", category: "Abs (Obliques)" }
+                { name: "Dragon Flag", category: "Lats/Abs", pair: "P1", noInputs: true },
+                { name: "Inclined Bench Press", category: "Chest (Upper)", pair: "P2" },
+                { name: "Weighted Pull-ups", category: "Lats (Upper)", pair: "P3" },
+                { name: "Reverse crunch", category: "Abs (Lower)", pair: "P3" },
+                { name: "Chest-Supported Back Row", category: "Back (Mid)", pair: "P4" },
+                { name: "Chest Fly", category: "Chest (Mid)", pair: "P4" },
+                { name: "Cross Cable Extension", category: "Triceps (lateral/medial head)", pair: "P4" },
+                { name: "Lats Cable Row", category: "Lats (Lower)", pair: "P5" },
+                { name: "Preacher curls", category: "Biceps", pair: "P6" },
+                { name: "Dumbbell Lat Pullover", category: "Lats", pair: "P6" },
+                { name: "Biceps curls (behind shoulders)", category: "Biceps", pair: "P6" },
+                { name: "Rear Delt Dumbbell Raises", category: "Shoulders (rear delts)", pair: "P6" },
+                { name: "Overhead Extension", category: "Triceps (long head)", pair: "P7" },
+                { name: "Lateral Cable Raises", category: "Shoulders (side delts)", pair: "P7" },
+                { name: "Scapular depression", category: "Lats (Upper)", pair: "P8", unit: "x" },
+                { name: "Cable Rotator Cuff (kneeling)", category: "Shoulder", pair: "P8" }
             ],
             lower: [
-                { name: "Barbell Squat", category: "Quads", sets: 3 },
-                { name: "Romanian Deadlift", category: "Hamstrings & Glutes", sets: 3 },
-                { name: "Bulgarian Split Squat", category: "Quads / Glutes", sets: 3 },
-                { name: "Hip Thrust", category: "Glutes", sets: 3 },
-                { name: "Quad Leg Extension", category: "Quads" },
-                { name: "Calf Raises", category: "Calves" },
-                { name: "Dumbbell Swing", category: "Posterior Chain" },
-                { name: "Shrug", category: "Traps" },
-                { name: "Deadhang / Farmer's Carry", category: "Grip & Core", noInputs: true }
+                { name: "Barbell Squat (Quads)", category: "Quads", pair: "P1" },
+                { name: "Calf raises", category: "Calves", pair: "P1" },
+                { name: "Romanian Deadlift", category: "Hamstrings", pair: "P2" },
+                { name: "Shrug", category: "Neck", pair: "P2" },
+                { name: "Bulgarian Split Squat", category: "Glutes", pair: "P3" },
+                { name: "Rotator Cuff: Full Can", category: "Shoulder", pair: "P3", unit: "x" },
+                { name: "Hip Thrust", category: "Glutes", pair: "P4" },
+                { name: "Deadhang/Farmer's carry", category: "Forearm", pair: "P4" },
+                { name: "Quad Leg Extension", category: "Quads", pair: "P5" },
+                { name: "Cable crunch", category: "Abs (Upper)", pair: "P5" },
+                { name: "Dumbbell swing", category: "Glutes/Hamstrings", pair: "P6" },
+                { name: "Woodchopper", category: "Abs (Obliques)", pair: "P6" }
             ]
         };
 
@@ -307,57 +307,88 @@
 
             const list = workouts[currentTab];
 
+            // Group adjacent exercises that share the same pair key
+            const groups = [];
             list.forEach((ex, idx) => {
-                const totalSets = ex.sets || 2;
-                const card = document.createElement('div');
-                card.className = "bg-iosCard px-3.5 py-3 rounded-2xl space-y-2 border border-iosNeutral/40 hover:border-iosActive/30 transition-all shadow-md";
+                const lastGroup = groups[groups.length - 1];
+                if (ex.pair && lastGroup && lastGroup.pair === ex.pair) {
+                    lastGroup.items.push({ ex, idx });
+                } else {
+                    groups.push({
+                        pair: ex.pair || null,
+                        items: [{ ex, idx }]
+                    });
+                }
+            });
 
-                let inputGridHTML = '';
-                
-                if (!ex.noInputs) {
-                    let setBoxes = '';
-                    for (let s = 1; s <= totalSets; s++) {
-                        const val = getWeight(idx, s);
-                        setBoxes += `
-                            <!-- SET ${s} -->
-                            <div class="bg-iosNeutral/40 px-2 py-1.5 rounded-xl flex items-center justify-between border border-iosNeutral/60 focus-within:border-iosActive">
-                                <label class="text-[12px] font-bold text-iosSubText shrink-0">S${s}</label>
-                                <div class="flex items-center gap-1.5 w-full justify-end">
-                                    <input type="text" 
-                                        inputmode="decimal"
-                                        pattern="[0-9]*[.,]?[0-9]*"
-                                        placeholder="0" 
-                                        value="${val}"
-                                        oninput="handleDecimalInput(this, ${idx}, ${s})"
-                                        onfocus="this.select()"
-                                        class="w-full bg-transparent text-right font-extrabold text-iosWarning placeholder:text-iosSubText text-base sm:text-lg outline-none">
-                                    <span class="text-[11px] font-semibold text-iosSubText shrink-0">kg</span>
+            groups.forEach(group => {
+                let groupContainer;
+                if (group.pair) {
+                    // Transparent tile with electric blue tint encompassing paired exercises
+                    groupContainer = document.createElement('div');
+                    groupContainer.className = "bg-iosActive/10 border border-iosActive/25 p-2 rounded-3xl space-y-2";
+                } else {
+                    groupContainer = document.createElement('div');
+                    groupContainer.className = "space-y-2.5";
+                }
+
+                group.items.forEach(({ ex, idx }) => {
+                    const totalSets = ex.sets || 2;
+                    const card = document.createElement('div');
+                    card.className = "bg-iosCard px-3.5 py-3 rounded-2xl space-y-2 border border-iosNeutral/40 hover:border-iosActive/30 transition-all shadow-md";
+
+                    let inputGridHTML = '';
+                    
+                    if (!ex.noInputs) {
+                        let setBoxes = '';
+                        const unitLabel = ex.unit || 'kg';
+                        for (let s = 1; s <= totalSets; s++) {
+                            const val = getWeight(idx, s);
+                            setBoxes += `
+                                <!-- SET ${s} -->
+                                <div class="bg-iosNeutral/40 px-2 py-1.5 rounded-xl flex items-center justify-between border border-iosNeutral/60 focus-within:border-iosActive">
+                                    <label class="text-[12px] font-bold text-iosSubText shrink-0">S${s}</label>
+                                    <div class="flex items-center gap-1.5 w-full justify-end">
+                                        <input type="text" 
+                                            inputmode="decimal"
+                                            pattern="[0-9]*[.,]?[0-9]*"
+                                            placeholder="0" 
+                                            value="${val}"
+                                            oninput="handleDecimalInput(this, ${idx}, ${s})"
+                                            onfocus="this.select()"
+                                            class="w-full bg-transparent text-right font-extrabold text-iosWarning placeholder:text-iosSubText text-base sm:text-lg outline-none">
+                                        <span class="text-[11px] font-semibold text-iosSubText shrink-0">${unitLabel}</span>
+                                    </div>
                                 </div>
+                            `;
+                        }
+
+                        const gridColsClass = totalSets === 3 ? 'grid-cols-3 gap-1.5' : 'grid-cols-2 gap-2.5';
+
+                        inputGridHTML = `
+                            <!-- Input Grid -->
+                            <div class="grid ${gridColsClass}">
+                                ${setBoxes}
                             </div>
                         `;
                     }
 
-                    const gridColsClass = totalSets === 3 ? 'grid-cols-3 gap-1.5' : 'grid-cols-2 gap-2.5';
-
-                    inputGridHTML = `
-                        <!-- Input Grid -->
-                        <div class="grid ${gridColsClass}">
-                            ${setBoxes}
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center gap-2">
+                            <h4 class="text-sm sm:text-base font-bold text-iosText leading-snug flex-1 flex items-center gap-1.5 flex-wrap">
+                                <span>${ex.name}</span>
+                            </h4>
+                            <span class="text-[13px] font-semibold text-iosSecondary bg-iosNeutral/80 px-2.5 py-0.5 rounded-full shrink-0 text-right">
+                                ${ex.category}
+                            </span>
                         </div>
+                        ${inputGridHTML}
                     `;
-                }
 
-                card.innerHTML = `
-                    <div class="flex justify-between items-center gap-2">
-                        <h4 class="text-sm sm:text-base font-bold text-iosText leading-snug flex-1">${ex.name}</h4>
-                        <span class="text-[13px] font-semibold text-iosSecondary bg-iosNeutral/80 px-2.5 py-0.5 rounded-full shrink-0 text-right">
-                            ${ex.category}
-                        </span>
-                    </div>
-                    ${inputGridHTML}
-                `;
+                    groupContainer.appendChild(card);
+                });
 
-                container.appendChild(card);
+                container.appendChild(groupContainer);
             });
         }
 
